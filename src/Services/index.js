@@ -19,6 +19,31 @@ router.get('/get-by-service/:id', async(req, res) => {
     }
 })
 
+router.get('/get-all-images', async(req, res) => {
+    const imagesUpdate = []
+    try {
+        const fullGlam = await servicesModel.findById('60854b62cd35326768b6af78')
+        const naturalGlam = await servicesModel.findById('60854ac4cd35326768b6af6d')
+        const softGlam = await servicesModel.findById('60854b72cd35326768b6af83')
+
+        fullGlam.images.map((im) => {
+            imagesUpdate.push({ serviceName: 'Full glam', url: im.url })
+        })
+        naturalGlam.images.map((im) => {
+            imagesUpdate.push({ serviceName: 'Natural glam', url: im.url })
+        })
+        softGlam.images.map((im) => {
+            imagesUpdate.push({ serviceName: 'Soft glam', url: im.url })
+        })
+
+        res.send({
+            data: imagesUpdate,
+        })
+    } catch (error) {
+        console.log(error)
+    }
+})
+
 router.post('/new-service', async(req, res) => {
     try {
         const { url, serviceName, price, pricePerHour, desc, feature } = req.body
