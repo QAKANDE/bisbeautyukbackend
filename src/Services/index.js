@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const servicesModel = require("../Services/schema");
+const videosModel = require("../Services/videosSchema");
 
 router.get("/", async (req, res) => {
   try {
@@ -46,14 +47,66 @@ router.get("/get-all-images", async (req, res) => {
   }
 });
 
+router.get("/get-all-videos", async (req, res) => {
+  const videosUpdate = [];
+  try {
+    const fullGlam = await videosModel.findById("621b9c75246585f46986cb2d");
+    const naturalGlam = await videosModel.findById("621b9c60246585f46986cb2b");
+    const softGlam = await videosModel.findById("621b9b9e246585f46986cb29");
+
+    fullGlam.videos.map((im) => {
+      videosUpdate.push({ serviceName: "Full glam", url: im.url });
+    });
+    naturalGlam.videos.map((im) => {
+      videosUpdate.push({ serviceName: "Natural glam", url: im.url });
+    });
+    softGlam.videos.map((im) => {
+      videosUpdate.push({ serviceName: "Soft glam", url: im.url });
+    });
+
+    res.send({
+      data: videosUpdate,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.post("/new-video", async (req, res) => {
+  try {
+    const { url, serviceName } = req.body;
+    let allServices = await videosModel.find();
+    const serviceFound = allServices.filter(
+      (service) => service.serviceName === serviceName
+    );
+    if (serviceFound.length === 0) {
+      const newService = await videosModel.create({
+        serviceName,
+        videos: [{ url }],
+      });
+      return res.status(201).send(newService);
+    } else {
+      const serviceId = serviceFound[0]._id;
+      let serviceById = await videosModel.findById(serviceId);
+      if (serviceById && serviceFound.length !== 0) {
+        serviceById.videos.push({ url });
+        serviceById = await serviceById.save();
+        res.send("New service image added");
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 router.post("/new-service", async (req, res) => {
   try {
     const { url, serviceName, price, pricePerHour, desc, features } = req.body;
-    const newFeatureArr = [];
-    const featureArr = features.split(",");
-    featureArr.map((feat) => {
-      newFeatureArr.push({ text: feat });
-    });
+    // const newFeatureArr = [];
+    // const featureArr = features.split(",");
+    // featureArr.map((feat) => {
+    //   newFeatureArr.push({ text: feat });
+    // });
     let allServices = await servicesModel.find();
     const serviceFound = allServices.filter(
       (service) => service.serviceName === serviceName
